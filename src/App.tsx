@@ -9,6 +9,7 @@ import {
   SignUp,
   ForgotPassword,
 } from "./pages";
+import { Navbar } from "./components";
 
 function App() {
   return (
@@ -22,8 +23,8 @@ function App() {
           <Route path="/registrieren" element={<SignUp />} />
           <Route path="/passwort-vergessen" element={<ForgotPassword />} />
         </Routes>
+        <Navbar />
       </Router>
-      {/* TODO: Navbar */}
     </>
   );
 }
