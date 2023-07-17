@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ReactComponent as ArrowRightIcon } from "../../assets/svg/keyboardArrowRightIcon.svg";
 import visibilityIcon from "../../assets/svg/visibilityIcon.svg";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { toast } from "react-toastify";
 
 export function SignIn() {
   const navigate = useNavigate();
@@ -19,6 +21,27 @@ export function SignIn() {
     }));
   };
 
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const auth = getAuth();
+
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      if (userCredential.user) {
+        navigate("/");
+        toast.success(`Willkommen zurück, ${userCredential.user.displayName}`);
+      }
+    } catch (error) {
+      toast.error("Falscher Benutzername oder Passwort!");
+    }
+  };
+
   return (
     <>
       <div className="pageContainer">
@@ -27,7 +50,7 @@ export function SignIn() {
         </header>
 
         <main>
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               type="email"
               name="email"
@@ -62,7 +85,7 @@ export function SignIn() {
 
             <div className="signInBar">
               <p className="signInText">Sign In</p>
-              <button className="signInButton">
+              <button className="signInButton" type="submit">
                 <ArrowRightIcon fill="#ffffff" width="34px" height="34px" />
               </button>
             </div>

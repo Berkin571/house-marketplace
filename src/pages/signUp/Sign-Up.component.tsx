@@ -5,6 +5,7 @@ import visibilityIcon from "../../assets/svg/visibilityIcon.svg";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { db, initializeAuth } from "../../firebase.config";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 export function SignUp() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export function SignUp() {
 
       navigate("/");
     } catch (error) {
-      console.log(error);
+      toast.error("Ups. Die Datenbank ist aktuell nicht erreichbar!");
     }
   };
   return (
