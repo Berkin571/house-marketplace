@@ -27,10 +27,7 @@ export function SignIn() {
         </header>
 
         <main>
-          <form
-            action="
-          "
-          >
+          <form>
             <input
               type="email"
               name="email"
