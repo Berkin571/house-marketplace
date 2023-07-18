@@ -8,6 +8,7 @@ import {
   SignIn,
   SignUp,
   ForgotPassword,
+  Category,
 } from "./pages";
 import { Navbar, PrivateRoute } from "./components";
 import { ToastContainer } from "react-toastify";
@@ -19,6 +20,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Explore />} />
+          <Route path="/Erkunden/:categoryName" element={<Category />} />
           <Route path="/angebote" element={<Offers />} />
           <Route path="/mein-profil" element={<PrivateRoute />}>
             <Route path="/mein-profil" element={<Profile />} />

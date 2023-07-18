@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   collection,
   getDocs,
@@ -15,9 +16,11 @@ import { Spinner } from "../../components";
 import { Listing } from "../../shared/listings.type";
 import { ListingItem } from "../../components/listing-item";
 
-export function Offers() {
+export function Category() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const params = useParams();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -28,7 +31,7 @@ export function Offers() {
         // create query
         const q = query(
           listingsRef,
-          where("offer", "==", true),
+          where("type", "==", params.categoryName),
           orderBy("timestamp", "desc"),
           limit(10)
         );
@@ -52,12 +55,16 @@ export function Offers() {
     };
 
     fetchListings();
-  }, []);
+  }, [params.categoryName]);
 
   return (
     <div className="category">
       <header>
-        <p className="pageHeader">Angebote</p>
+        <p className="pageHeader">
+          {params.categoryName === "Miete"
+            ? "Bereich zum Mieten"
+            : "Bereich zum Kaufen"}
+        </p>
       </header>
 
       {loading ? (
@@ -86,7 +93,7 @@ export function Offers() {
         </>
       ) : (
         <>
-          <p>Aktuelle existieren keine Angebote.</p>
+          <p>Keine Anzeigen für {params.categoryName}</p>
         </>
       )}
     </div>
