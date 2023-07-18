@@ -79,8 +79,8 @@ export function SignIn() {
               />
             </div>
 
-            <Link to="/forgot-password" className="forgotPasswordLink">
-              Forgot Password
+            <Link to="/passwort-vergessen" className="forgotPasswordLink">
+              Passwort vergessen
             </Link>
 
             <div className="signInBar">

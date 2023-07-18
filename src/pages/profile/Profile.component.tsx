@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, updateProfile } from "firebase/auth";
 import { db } from "../../firebase.config";
+import { doc, updateDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 export function Profile() {
   const navigate = useNavigate();
 
   const auth = getAuth();
 
+  const [updateSuccess, setUpdateSuccess] = useState<boolean>(false);
   const [changeDetails, setChangeDetails] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     name: auth.currentUser?.displayName ?? "",
@@ -21,8 +24,24 @@ export function Profile() {
     navigate("/anmelden");
   };
 
-  const onSubmit = () => {
-    console.log("123");
+  const onSubmit = async () => {
+    try {
+      if (auth.currentUser?.displayName !== name) {
+        await updateProfile(auth.currentUser!, {
+          displayName: name,
+        });
+
+        const userRef = doc(db, "users", auth.currentUser!.uid);
+        await updateDoc(userRef, { name });
+
+        setUpdateSuccess(true);
+        updateSuccess === true &&
+          toast.success("Die Änderungen wurden gespeichert.");
+        setUpdateSuccess(false);
+      }
+    } catch (error) {
+      toast.error("Das Speichern ist fehlgeschlagen.");
+    }
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
