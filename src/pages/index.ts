@@ -7,3 +7,4 @@ export { ForgotPassword } from "./forgotPassword";
 export { Category } from "./category";
 export { CreateListing } from "./create-listing";
 export { SingleListing } from "./single-listing";
+export { Contact } from "./contact";

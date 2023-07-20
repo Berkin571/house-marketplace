@@ -11,6 +11,7 @@ import {
   Category,
   CreateListing,
   SingleListing,
+  Contact,
 } from "./pages";
 import { Navbar, PrivateRoute } from "./components";
 import { ToastContainer } from "react-toastify";
@@ -34,6 +35,7 @@ function App() {
             path="/Erkunden/:categoryName/:listingId"
             element={<SingleListing />}
           />
+          <Route path="/kontakt/:userRefId" element={<Contact />} />
           <Route path="/anmelden" element={<SignIn />} />
           <Route path="/registrieren" element={<SignUp />} />
           <Route path="/passwort-vergessen" element={<ForgotPassword />} />

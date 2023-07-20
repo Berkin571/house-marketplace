@@ -88,7 +88,7 @@ export function Slider({ objectFilter }: SliderProps) {
 
   return listings ? (
     <>
-      {objectFilter && <p className="exploreHeading">Empfohlen</p>}
+      {!objectFilter && <p className="exploreHeading">Empfohlene Immobilien</p>}
 
       <div className="slider">
         <button onClick={handlePreviousClick}>
@@ -99,7 +99,7 @@ export function Slider({ objectFilter }: SliderProps) {
         <div
           onClick={() =>
             navigate(
-              `/Kategorie/${listings[slideIndex].data.type}/${listings[slideIndex].id}`
+              `/Erkunden/${listings[slideIndex].data.type}/${listings[slideIndex].id}`
             )
           }
           style={{
