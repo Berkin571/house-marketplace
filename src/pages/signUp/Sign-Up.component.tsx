@@ -108,7 +108,7 @@ export function SignUp() {
             </div>
 
             <div className="signUpBar">
-              <p className="signUpText">Sign In</p>
+              <p className="signUpText">Registrieren</p>
               <button className="signUpButton" type="submit">
                 <ArrowRightIcon fill="#ffffff" width="34px" height="34px" />
               </button>

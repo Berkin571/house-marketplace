@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 export function CreateListing() {
-  const [geolocationEnabled, setGeolocationEnabled] = useState<boolean>(true);
+  const [geolocationEnabled] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [formData, setFormData] = useState<FormDataType>({

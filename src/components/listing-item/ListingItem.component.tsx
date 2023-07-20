@@ -14,7 +14,7 @@ export function ListingItem({
   return (
     <li className="categoryListing">
       <Link
-        to={`/category/${listing.data.type}/${id}`}
+        to={`/Erkunden/${listing.data.type}/${id}`}
         className="categoryListingLink"
       >
         <img

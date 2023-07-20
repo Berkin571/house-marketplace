@@ -84,7 +84,7 @@ export function SignIn() {
             </Link>
 
             <div className="signInBar">
-              <p className="signInText">Sign In</p>
+              <p className="signInText">Anmelden</p>
               <button className="signInButton" type="submit">
                 <ArrowRightIcon fill="#ffffff" width="34px" height="34px" />
               </button>
