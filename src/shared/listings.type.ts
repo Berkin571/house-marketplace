@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export type Listing = {
+export type ListingType = {
   id: string;
   data: {
     bathrooms: number;

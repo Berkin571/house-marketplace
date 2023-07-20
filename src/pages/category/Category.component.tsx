@@ -7,16 +7,18 @@ import {
   where,
   orderBy,
   limit,
+  startAfter,
 } from "firebase/firestore";
 import { db } from "../../firebase.config";
 import { toast } from "react-toastify";
 import { Spinner } from "../../components";
-import { Listing } from "../../shared/listings.type";
+import { ListingType } from "../../shared/listings.type";
 import { ListingItem } from "../../components/listing-item";
 
 export function Category() {
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastFetchedListing, setLastFetchedListing] = useState<any>();
 
   const params = useParams();
 
@@ -31,11 +33,14 @@ export function Category() {
           listingsRef,
           where("type", "==", params.categoryName),
           orderBy("timestamp", "desc"),
-          limit(10)
+          limit(3)
         );
 
         // execute query
         const querySnapshot = await getDocs(q);
+
+        const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastFetchedListing(lastVisible);
 
         const listings: Array<any> = [];
 
@@ -54,6 +59,40 @@ export function Category() {
 
     fetchListings();
   }, [params.categoryName]);
+
+  // Pagination for Listings
+  const onFetchMoreListings = async () => {
+    try {
+      // get reference
+      const listingsRef = collection(db, "listings");
+
+      // create query
+      const q = query(
+        listingsRef,
+        where("type", "==", params.categoryName),
+        orderBy("timestamp", "desc"),
+        startAfter(lastFetchedListing),
+        limit(2)
+      );
+
+      // execute query
+      const querySnapshot = await getDocs(q);
+
+      const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+      setLastFetchedListing(lastVisible);
+
+      const listings: Array<any> = [];
+
+      querySnapshot.forEach((doc) => {
+        return listings.push({ id: doc.id, data: doc.data() });
+      });
+
+      setListings((prevState) => [...prevState, ...listings]);
+      setLoading(false);
+    } catch (error) {
+      toast.error("Anzeigen konnten nicht geladen werden.");
+    }
+  };
 
   return (
     <div className="category">
@@ -83,11 +122,11 @@ export function Category() {
 
           <br />
           <br />
-          {/* {lastFetchedListing && (
-            <p className='loadMore' onClick={() => {}}>
-              Load More
+          {lastFetchedListing && (
+            <p className="loadMore" onClick={onFetchMoreListings}>
+              Mehr anzeigen
             </p>
-          )} */}
+          )}
         </>
       ) : (
         <>

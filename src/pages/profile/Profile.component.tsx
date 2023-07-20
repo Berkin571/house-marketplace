@@ -1,17 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, updateProfile } from "firebase/auth";
 import { db } from "../../firebase.config";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  deleteDoc,
+} from "firebase/firestore";
 import { toast } from "react-toastify";
 import arrowRight from "../../assets/svg/keyboardArrowRightIcon.svg";
 import homeIcon from "../../assets/svg/homeIcon.svg";
+import { ListingItem } from "../../components/listing-item";
+import { ListingType } from "../../shared/listings.type";
 
 export function Profile() {
   const navigate = useNavigate();
 
   const auth = getAuth();
 
+  const [loading, setLoading] = useState<boolean>(true);
+  const [listings, setListings] = useState<ListingType[] | null>([]);
   const [updateSuccess, setUpdateSuccess] = useState<boolean>(false);
   const [changeDetails, setChangeDetails] = useState<boolean>(false);
   const [formData, setFormData] = useState({
@@ -20,6 +33,33 @@ export function Profile() {
   });
 
   const { name, email } = formData;
+
+  useEffect(() => {
+    const fetchUserListings = async () => {
+      const listingsRef = collection(db, "listings");
+      const q = query(
+        listingsRef,
+        where("userRef", "==", auth.currentUser?.uid),
+        orderBy("timestamp", "desc")
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      const listings: Array<any> = [];
+
+      querySnapshot.forEach((doc) => {
+        return listings.push({
+          id: doc.id,
+          data: doc.data(),
+        });
+      });
+
+      setListings(listings);
+      setLoading(false);
+    };
+
+    fetchUserListings();
+  }, [auth.currentUser?.uid]);
 
   const onLogout = () => {
     auth.signOut();
@@ -51,6 +91,18 @@ export function Profile() {
       ...prevState,
       [e.target.id]: e.target.value,
     }));
+  };
+
+  const onDelete = async (id: string) => {
+    if (window.confirm("Möchtest du diese Anzeige wirklich löschen?")) {
+      const docRef = doc(db, "listings", id);
+      await deleteDoc(docRef);
+      const updatedListings: any = listings?.filter(
+        (listing) => listing.id !== id
+      );
+      setListings(updatedListings);
+      toast.success("Die Anzeige wurde gelöscht.");
+    }
   };
 
   return (
@@ -106,6 +158,27 @@ export function Profile() {
           <p className="createListingText">Anzeige erstellen</p>
           <img src={arrowRight} alt="arrow right" />
         </Link>
+
+        {!loading && listings && listings?.length > 0 && (
+          <>
+            <p className="listingText">Deine aktuellen Anzeigen</p>
+
+            <ul className="listingsList">
+              {listings.map((listing: ListingType) => (
+                <li key={listing.id}>
+                  {listing.data && (
+                    <ListingItem
+                      key={listing.id}
+                      listing={listing}
+                      id={listing.id}
+                      onDelete={() => onDelete(listing.id)}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </main>
     </div>
   );

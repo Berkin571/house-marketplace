@@ -1,7 +1,7 @@
-import { Listing } from "../../shared/listings.type";
+import { ListingType } from "../../shared/listings.type";
 
 export type ListingItemProps = {
-  listing: Listing;
+  listing: ListingType;
   id: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string, name: string) => void;
