@@ -1,13 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Spinner } from "../../components";
-import { FormDataType } from "./Create-listing.type";
+import { ProgressBar, Spinner } from "../../components";
+import { FormDataType, GeoLocation } from "./Create-listing.type";
+import { db } from "../../firebase.config";
+import { v4 as uuidv4 } from "uuid";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 export function CreateListing() {
   const [geolocationEnabled, setGeolocationEnabled] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [formData, setFormData] = useState<FormDataType>({
     type: "Miete",
     name: "",
@@ -63,9 +73,121 @@ export function CreateListing() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log(formData);
+
+    setLoading(true);
+    if (discountedPrice && discountedPrice >= regularPrice) {
+      toast.warning(
+        "Der reduzierte Preis muss kleiner als der reguläre Preis sein."
+      );
+      return;
+    }
+
+    if (images instanceof FileList && images.length > 6) {
+      toast.warning("Es können maximal 6 Bilder hochgeladen werden.");
+      return;
+    }
+
+    let geolocation: GeoLocation = {};
+    let location;
+
+    if (geolocationEnabled) {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.REACT_APP_GEOCODE_API_KEY}`
+      );
+
+      const data = await response.json();
+
+      console.log(data);
+      geolocation.lat = data.results[0]?.geometry.location.lat ?? 0;
+      geolocation.lng = data.results[0]?.geometry.location.lng ?? 0;
+
+      location =
+        data.status === "ZERO_RESULTS"
+          ? undefined
+          : data.results[0]?.formatted_address;
+
+      if (location === undefined || location.includes("undefined")) {
+        setLoading(false);
+        toast.warning("Bitte geben Sie eine korrekte Adresse ein.");
+        return;
+      }
+    } else {
+      geolocation.lat = latitude;
+      geolocation.lng = longitude;
+    }
+
+    // store image in sotrage(firebase)
+    const storeImage = async (image: File) => {
+      return new Promise((resolve, reject) => {
+        const storage = getStorage();
+        const fileName = `${auth.currentUser?.uid}-${image.name}-${uuidv4()}`;
+
+        const storageRef = ref(storage, `images/${fileName}`);
+        const uploadTask = uploadBytesResumable(storageRef, image);
+
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            setUploadProgress(progress);
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+              default:
+                break;
+            }
+          },
+          (error) => {
+            reject(error);
+          },
+          () => {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    };
+
+    if (images && images instanceof FileList) {
+      const imageUrls = await Promise.all(
+        Array.from(images).map((image) => storeImage(image))
+      ).catch((error) => {
+        setLoading(false);
+        toast.error("Bilder konnten nicht hochgeladen werden!");
+        return;
+      });
+
+      const formDataCopy = {
+        ...formData,
+        imageUrls,
+        geolocation,
+        timestamp: serverTimestamp(),
+      };
+
+      delete formDataCopy.address;
+      delete formDataCopy.images;
+      location && (formDataCopy.location = location);
+      !formDataCopy.offer && delete formDataCopy.discountedPrice;
+
+      const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+      setLoading(false);
+      toast.success("Anzeige erfolgreich erstellt!");
+      navigate(`/Erkunden/${formDataCopy.type}/${docRef.id}`);
+    }
+
+    setLoading(false);
   };
 
   const onMutate = (
@@ -94,7 +216,7 @@ export function CreateListing() {
     if (!target.files) {
       setFormData((prevState) => ({
         ...prevState,
-        [target.id]: boolean !== null ? boolean : target.value,
+        [target.id]: boolean ?? target.value,
       }));
     }
   };
@@ -338,6 +460,7 @@ export function CreateListing() {
             multiple
             required
           />
+          <ProgressBar uploadProgress={uploadProgress} />
           <button type="submit" className="primaryButton createListingButton">
             Anzeige erstellen
           </button>

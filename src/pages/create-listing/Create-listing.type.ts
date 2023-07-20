@@ -5,12 +5,18 @@ export type FormDataType = {
   bathrooms: number;
   parking: boolean;
   furnished: boolean;
-  address: string;
-  offer: boolean;
+  address?: string;
+  offer?: boolean;
   regularPrice: number;
-  discountedPrice: number;
-  images: FileList | {} | null;
+  discountedPrice?: number;
+  images?: FileList | {} | null;
   latitude: number;
   longitude: number;
   userRef: string;
+  location?: string;
+};
+
+export type GeoLocation = {
+  lat?: number;
+  lng?: number;
 };
